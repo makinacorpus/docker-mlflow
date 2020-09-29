@@ -1,0 +1,6 @@
+local
+mlruns
+.git
+.travis.yml
+docker-compose*
+Dockerfile

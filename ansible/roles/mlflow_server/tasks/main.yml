@@ -1,0 +1,5 @@
+---
+- include_tasks: configs.yml
+  tags: [configs, mlflow_server_configs]
+- include_tasks: services.yml
+  tags: [service, mlflow_server_service]

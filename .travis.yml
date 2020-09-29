@@ -1,0 +1,36 @@
+---
+services: [docker]
+language: python
+dist: focal
+git: {lfs_skip_smudge: true}
+env:
+  global:
+  - |
+    __NAME__="mlflow-server"
+    __NAMESPACE__="makinacorpus"
+    COPS_URL="https://raw.githubusercontent.com/corpusops/corpusops.bootstrap/2.0"
+  matrix:
+    - |
+      __VERSION__="1.11.0"
+      IMAGE="${__NAMESPACE__}/${__NAME__}:${__VERSION__}"
+language: python
+before_install:
+- curl $COPS_URL/hacking/docker_release > docker_release && chmod +x docker_release
+- sudo service docker stop
+- >
+  sudo bash -exc "python -c
+  \"d='/etc/docker/daemon.json';
+  import json;
+  c = json.load(open(d));
+  c['experimental'] = True;
+  print(c);open(d, 'w').write(json.dumps(c))
+  \"
+  && systemctl restart docker"
+- echo "$DOCKER_PASSWORD" | docker login --password-stdin --username="$DOCKER_RELEASER"
+- cd $TRAVIS_BUILD_DIR
+install: skip
+script:
+- docker build --squash -t $IMAGE . --build-arg MLFLOW__VERSION=${__VERSION__}
+after_success:
+- docker images
+- ./docker_release $IMAGE

@@ -1,0 +1,81 @@
+version: "3.8"
+x-images:
+  env: &env
+    env_file: [.env]
+services:
+  mlflow-server:
+    <<: [ *env ]
+    image: makinacorpus/mlflow-server:${MLFLOW__VERSION:-1.11.0}
+    ports:
+    - "${MLFLOW__LISTEN:-0.0.0.0}:${MLFLOW__PORT:-5000}:${MLFLOW__INT_PORT:-5000}"
+    entrypoint:
+    - /bin/bash
+    - '-c'
+    - >-
+      : \
+      && POSTGRES_STARTUP_TIMEOUT=$${POSTGRES_STARTUP_TIMEOUT:-45s}
+      && dockerize -wait http://setup-postgres -timeout $${POSTGRES_STARTUP_TIMEOUT}
+      && /code/run.sh
+    volumes:
+    - mlflow:/data
+  nginx:
+    <<: [ *env ]
+    image: "corpusops/nginx:1.14-alpine"
+    depends_on:
+    - mlflow-server
+    ports:
+    - "${MLFLOW__LISTEN:-0.0.0.0}:${MLFLOW__NGX_PORT:-5001}:${MLFLOW__NGX_INT_PORT:-80}"
+    volumes:
+    - ./vhost.conf.template:/etc/nginx/conf.d/default.conf.template
+    - logs:/logs/
+    - nginx-certs:/certs
+    command:
+    - sh
+    - '-ec'
+    - |-
+      export MLFLOW__HTTP_PROTECT_USER=$${MLFLOW__HTTP_PROTECT_USER:-mlflow}
+      export MLFLOW__HTTP_PROTECT_PASSWORD=$${MLFLOW__HTTP_PROTECT_PASSWORD:-mlflow}
+      touch /etc/htpasswd-protect
+      chmod 644 /etc/htpasswd-protect
+      if [ "x$$MLFLOW__HTTP_PROTECT_PASSWORD" != "x" ];then
+        echo "/ htpasswd:">&2
+        echo "$$MLFLOW__HTTP_PROTECT_PASSWORD"\
+        | htpasswd -bim /etc/htpasswd-protect "$$MLFLOW__HTTP_PROTECT_USER"
+      fi
+      v=/etc/nginx/conf.d/default.conf
+      frep $${v}.template:$${v} --overwrite
+      exec /bin/supervisord.sh
+    environment:
+    - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx /etc/supervisor.d/rsyslog
+  db:
+    <<: [ *env ]
+    image: "corpusops/postgres:11"
+    volumes:
+    - postgresql:/var/lib/postgresql/data
+  setup-postgres:
+    <<: [ *env ]
+    image: "corpusops/postgres:11"
+    depends_on:
+    - db
+    entrypoint:
+    - /bin/sh
+    - '-c'
+    - |-
+      set -ex
+      POSTGRES_STARTUP_TIMEOUT=$${POSTGRES_STARTUP_TIMEOUT:-45s}
+      flag=/started_$$(echo $$POSTGRES_DB|sed -re "s![/:]!__!g")
+      if [ -e "$$flag" ];then rm -f "$$flag";fi
+      echo "Try connection to pgsql: $$POSTGRES_DB & wait for db init" >&2 \
+      && ( while true;do if ( \
+        echo "select version();"\
+        | psql -v ON_ERROR_STOP=1 \
+          "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@$$POSTGRES_HOST:$$POSTGRES_PORT/$$POSTGRES_DB"\
+      );then touch $$flag && break;fi;done )&
+      set -x \
+      && dockerize -wait file://$$flag -timeout $${POSTGRES_STARTUP_TIMEOUT} \
+      && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
+volumes:
+  mlflow:
+  postgresql:
+  nginx-certs:
+  logs:

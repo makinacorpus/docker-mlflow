@@ -1,0 +1,10 @@
+---
+version: "3.8"
+services:
+  mlflow-server:
+    volumes:
+    - ./:/code
+    build:
+      context: ".."
+      args: {MLFLOW__VERSION: "${MLFLOW__VERSION:-1.11.0}"}
+    environment: {NO_SSL: "0"}

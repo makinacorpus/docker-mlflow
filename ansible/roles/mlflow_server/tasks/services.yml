@@ -1,0 +1,19 @@
+- include_role: {name: corpusops.roles/docker_compose_service}
+  vars:
+    _docker_compose_service:
+      project: "{{mlflow_server_compose_project}}"
+      state: "{{mlflow_server_started_state}}"
+      working_directory: "{{mlflow_server_hostdir}}"
+      stdout: "{{mlflow_stdout}}"
+      files: [docker-compose.yml, docker-compose-prod.yml]
+      stderr: "{{mlflow_stderr}}"
+- shell: |-
+    set -ex
+    cd "{{mlflow_server_hostdir}}"
+    docker-compose -p {{mlflow_server_compose_project}} pull
+  tags: [services_compose_up]
+- shell: |-
+    set -ex
+    cd "{{mlflow_server_hostdir}}"
+    docker-compose -p {{mlflow_server_compose_project}} up -d
+  tags: [services_compose_pull]

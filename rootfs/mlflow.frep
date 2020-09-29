@@ -1,0 +1,24 @@
+[program:mlfow]
+
+# use gosu to have all django groups
+command = gosu mlflow sh -exc ': \
+            && exec mlflow server \
+                --backend-store-uri {{.Env.MLFLOW__BACKEND_STORE_URI}} \
+                --default-artifact-root {{.Env.MLFLOW__ARTIFACTS_ROOT_URI}} \
+                --host {{.Env.MLFLOW__HOST}} \
+                --port {{.Env.MLFLOW__PORT}} \
+                {{.Env.MLFLOW__SERVER_EXTRA_ARGS}}'
+autostart = true
+autorestart = true
+killasgroup = true
+stopasgroup = true
+directory = /code
+stopsignal = KILL
+stopwaitsecs = 3
+stdout_logfile = /dev/stdout
+stderr_logfile = /dev/stderr
+stdout_logfile_maxbytes = 0
+stderr_logfile_maxbytes = 0
+stdout_logfile_backups = 0
+stderr_logfile_backups = 0
+

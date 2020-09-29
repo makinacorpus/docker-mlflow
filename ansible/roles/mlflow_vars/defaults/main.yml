@@ -1,0 +1,51 @@
+---
+mlflow_stderr: "null"
+mlflow_stdout: "{{mlflow_stderr}}"
+mlflow_server_name: mlflowserver
+mlflow_server_hostdir: "/srv/docker/{{mlflow_server_name}}"
+mlflow_server_compose_project: "{{mlflow_server_hostdir|copsf_basename}}"
+mlflow_server_domain: newmlflow.foo.com
+mlflow_server_extra_domains: []
+mlflow_server_hosts: "{{[mlflow_domain] + mlflow_extra_domains}}"
+mlflow_server_volumes:
+- "{{mlflow_server_hostdir}}/etc:/etc/mlflow"
+mlflow_server_started_state: started
+mlflow_server_ip: 0.0.0.0
+mlflow_server_int_host: 0.0.0.0
+mlflow_server_http_port: 5000
+mlflow_server_http_nginx_port: "{{mlflow_server_http_port+1}}"
+mlflow_server_http_int_port: 5000
+mlflow_version: 1.11.0
+mlflow_server_version: "{{mlflow_version}}"
+mlflow_server_backend_store_file: "sqlite:////data/mlflow.sqlite"
+mlflow_server_backend_store_db: "postgresql://{{mlflow_postgres_user}}:{{mlflow_postgres_password}}@{{mlflow_postgres_host}}:{{mlflow_postgres_port}}/{{mlflow_postgres_db}}"
+mlflow_server_backend_store: "{{mlflow_server_backend_store_db}}"
+mlflow_server_artifact_root_uri: "/data/artifacts"
+mlflow_server_server_extras: ""
+mlflow_server_default_env: |
+  COMPOSE_PROJECT_NAME={{mlflow_server_compose_project}}
+  MLFLOW__VERSION={{mlflow_server_version}}
+  MLFLOW__LISTEN={{mlflow_server_ip}}
+  MLFLOW__PORT={{mlflow_server_http_port}}
+  MLFLOW__HOST={{mlflow_server_int_host}}
+  MLFLOW__NGX_PORT={{mlflow_server_http_nginx_port}}
+  MLFLOW__BACKEND_STORE_URI={{mlflow_server_backend_store}}
+  MLFLOW__ARTIFACTS_ROOT_URI={{mlflow_server_artifact_root_uri}}
+  MLFLOW__SERVER_EXTRA_ARGS={{mlflow_server_server_extras}}
+  MLFLOW__HTTP_PROTECT_USER={{mlflow_http_protect_user}}
+  MLFLOW__HTTP_PROTECT_PASSWORD={{mlflow_http_protect_password}}
+  POSTGRES_USER={{mlflow_postgres_user}}
+  POSTGRES_PASSWORD={{mlflow_postgres_password}}
+  POSTGRES_HOST={{mlflow_postgres_host}}
+  POSTGRES_PORT={{mlflow_postgres_port}}
+  POSTGRES_DB={{mlflow_postgres_db}}
+mlflow_http_protect_user: mlflow
+mlflow_http_protect_password: mlflow
+mlflow_postgres_user: mlflow
+mlflow_postgres_host: db
+mlflow_postgres_db: mlflow
+mlflow_postgres_port: 5432
+mlflow_postgres_password: secretkK1oE3tD6dT8xP8u
+mlflow_server_env: "{{mlflow_server_default_env}}"
+
+

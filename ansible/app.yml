@@ -1,0 +1,10 @@
+- hosts: "{{mlflow_servers|default('all')}}"
+  roles: [corpusops.roles/plugins]
+  tasks:
+  - include_role: {name: corpusops.roles/services_virt_docker}
+    when: [docker_setup|default(false)]
+    tags: [docker_setup]
+  - include_role: {name: mlflow_vars, public: y}
+  - include_role: {name: mlflow_server}
+    tags: [mlflow_server]
+

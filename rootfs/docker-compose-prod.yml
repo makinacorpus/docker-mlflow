@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  mlflow-server:
+    restart: unless-stopped
+  db:
+    restart: unless-stopped
+  nginx:
+    restart: unless-stopped
+  setup-postgres:
+    restart: unless-stopped
+  backup:
+    env_file: [.env]
+    image: "corpusops/dbsmartbackup:postgres-11"
+    volumes:
+    - backupdb-dumps:/var/db_smart_backup/
+    - backupdb-logs:/var/db_smart_backup/logs/
+    restart: unless-stopped
+volumes:
+  backupdb-logs:
+  backupdb-dumps:

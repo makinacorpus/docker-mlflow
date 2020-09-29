@@ -1,0 +1,10 @@
+binutils
+libproj13
+gdal-bin
+less
+bash
+libpq5
+# dev deps
+libpq-dev
+build-essential
+libproj-dev

@@ -1,0 +1,56 @@
+---
+- set_fact:
+    mlflow_server_host_dirs: |
+        {% set directories = [] %}
+        {% for mlflow_server_volume in mlflow_server_volumes %}
+        {% set d = mlflow_server_volume.split(':')[0] %}
+        {% set _ = directories.append(d) %}
+        {% endfor %}
+        {{ directories | to_json }}
+- file:
+    path: "{{item}}"
+    mode: "0711"
+    state: directory
+  with_items: "{{mlflow_server_host_dirs}}"
+
+- name: Create directories
+  file:
+    path: "{{mlflow_server_hostdir}}/{{ item.path }}"
+    state: directory
+    mode: '{{ item.mode }}'
+  with_filetree: "{{playbook_dir}}/../rootfs/"
+  when: item.state == 'directory'
+
+- name: Template files
+  template:
+    src: '{{ item.src }}'
+    dest: "{{mlflow_server_hostdir}}/{{ item.path }}"
+    mode: '{{ item.mode }}'
+    trim_blocks: false
+  with_filetree: "{{playbook_dir}}/../rootfs/"
+  when:
+  - "item.state == 'file'"
+  - "not item.path|regex_search('\\.frep$|conf.template')"
+
+- name: Copy files
+  copy:
+    src: '{{ item.src }}'
+    dest: "{{mlflow_server_hostdir}}/{{ item.path }}"
+    mode: '{{ item.mode }}'
+  with_filetree: "{{playbook_dir}}/../rootfs/"
+  when:
+  - "item.state == 'file'"
+  - "item.path|regex_search('\\.frep$|conf.template')"
+
+- name: Copy rendered templates to their real final dest
+  copy:
+    remote_src: y
+    dest: "{{mlflow_server_hostdir}}/{{ item.path[:-6] }}"
+    src: "{{mlflow_server_hostdir}}/{{ item.path }}"
+    mode: '{{ item.mode }}'
+  with_filetree: "{{playbook_dir}}/../rootfs/"
+  when:
+  - "item.state == 'file'"
+  - "item.path|regex_search('\\.jinja')"
+
+
