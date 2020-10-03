@@ -1,10 +1,12 @@
 {{ $v := dict "$" $ }}
 {{ $v := merge $v ( dict "Env"                           .Env) }}
 {{ $v := merge $v ( dict "nostatics"                   ( .Env.NO_STATICS | default "" )                                               ) }}
+{{ $v := merge $v ( dict "minio_server_name"           ( .Env.NGINX_MINIO_SERVERNAME | default "minio" )                              ) }}
+{{ $v := merge $v ( dict "minio_server_aliases"        ( .Env.NGINX_MINIO_SERVER_ALIASES | default "" )                               ) }}
 {{ $v := merge $v ( dict "server_name"                 ( .Env.NGINX_SERVERNAME | default "localhost" )                                ) }}
 {{ $v := merge $v ( dict "server_aliases"              ( .Env.NGINX_SERVER_ALIASES | default "" )                                     ) }}
-{{ $v := merge $v ( dict "loglevel"                    ( .Env.NGINX_LOGLEVEL | default "debug" )                                      ) }}
-{{ $v := merge $v ( dict "server_name_in_redirect"     ( .Env.NGINX_SERVERNAME_IN_REDIRECT | default "off" )                           ) }}
+{{ $v := merge $v ( dict "loglevel"                    ( .Env.NGINX_LOGLEVEL | default "crit" )                                       ) }}
+{{ $v := merge $v ( dict "server_name_in_redirect"     ( .Env.NGINX_SERVERNAME_IN_REDIRECT | default "off" )                          ) }}
 {{ $v := merge $v ( dict "server_name_in_redirect_ssl" ( .Env.NGINX_SERVERNAME_IN_REDIRECT_SSL | default $v.server_name_in_redirect ) ) }}
 {{ $v := merge $v ( dict "real_ip_from_recursive"      ( .Env.NGINX_REAL_IP_FROM_RECURSIVE | default "on" )                           ) }}
 {{ $v := merge $v ( dict "real_ip_from"                ( .Env.NGINX_REAL_IP_FROM | default "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16" )) }}
@@ -130,19 +132,6 @@ server {
     proxy_buffering off;
     proxy_http_version 1.1;
 
-    location /s3 {
-         auth_basic off;
-         proxy_set_header SCRIPT_NAME $http_x_script_name;
-         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-         proxy_set_header Host $http_host;
-         proxy_redirect off;
-         proxy_pass http://minio:9000;
-
-         # Never cache the API content to prevent proxy caching
-         add_header Pragma "no-cache";
-         add_header Cache-Control "private, max-age=0, no-cache, no-store";
-     }
-
     location / {
          proxy_set_header SCRIPT_NAME $http_x_script_name;
          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -159,3 +148,82 @@ server {
     {{ template "vhost" $v }}
 
 }
+
+server {
+    listen 80;
+
+    server_name {{ $v.minio_server_name }}{{if $v.minio_server_aliases }}{{$v.server_aliases}}{{end}};
+    server_name_in_redirect {{ $v.server_name_in_redirect }};
+
+    error_log  /logs/minio-error.log  {{ $v.loglevel }};
+    access_log /logs/minio-access.log custom_combined if=$method_loggable;
+
+    {{ define "mvhost" }}
+    gzip on;
+    # adds a Vary: Accept-Encoding in the response, and it's a valid varying
+    # info as we may not gzip depending on the value of Accept-Encoding
+    gzip_vary on;
+    gzip_proxied any;
+    # note that text/html is always on by default
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        text/cache-manifest
+        application/json
+        application/x-javascript
+        application/xml
+        application/xml+rss
+        application/rss+xml
+        application/javascript
+        application/atom+xml
+        application/ld+json
+        application/manifest+json
+        application/vnd.geo+json
+        application/vnd.ms-fontobject
+        application/x-font-ttf
+        application/x-web-app-manifest+json
+        image/svg+xml
+        application/xhtml+xml
+        application/vnd.mapbox-vector-tile
+        font/opentype;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_min_length 256;
+    gzip_comp_level 4;
+    client_max_body_size {{.client_max_body_size}};
+    # feed the map variables for ssl up
+    set $http_x_ssl                $http_x_ssl_resolved;
+    set $http_x_forwarded_proto    $http_x_forwarded_proto_resolved;
+    set $http_x_forwarded_ssl      $http_x_forwarded_ssl_resolved;
+    set $http_x_forwarded_protocol $http_x_forwarded_protocol_resolved;
+    # set $scheme                  $forwarded_ssl_scheme;
+    # proxy params headers
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-NginX-Proxy true;
+    proxy_set_header x-forwarded-proto $http_x_forwarded_proto_resolved;
+    proxy_set_header x-forwarded-ssl $http_x_forwarded_ssl_resolved;
+    proxy_set_header x-forwarded-protocol $http_x_forwarded_protocol_resolved;
+    proxy_buffering off;
+    proxy_http_version 1.1;
+
+    location / {
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Host $http_host;
+         proxy_redirect off;
+         proxy_pass http://minio:9000;
+
+         # Never cache the API content to prevent proxy caching
+         add_header Pragma "no-cache";
+         add_header Cache-Control "private, max-age=0, no-cache, no-store";
+    }
+
+    {{ end }}
+    {{ template "mvhost" $v }}
+
+}
+
+
