@@ -28,7 +28,7 @@ mlflow_server_default_env: |
   MLFLOW__LISTEN={{mlflow_server_ip}}
   MLFLOW__PORT={{mlflow_server_http_port}}
   MLFLOW__HOST={{mlflow_server_int_host}}
-  MLFLOW__NGX_PORT={{mlflow_server_http_nginx_port}}
+  MLFLOW__NGINX_PORT={{mlflow_server_http_nginx_port}}
   MLFLOW__BACKEND_STORE_URI={{mlflow_server_backend_store}}
   MLFLOW__ARTIFACTS_ROOT_URI={{mlflow_server_artifact_root_uri}}
   MLFLOW__SERVER_EXTRA_ARGS={{mlflow_server_server_extras}}
@@ -59,4 +59,3 @@ mlflow_postgres_db: mlflow
 mlflow_postgres_port: 5432
 mlflow_postgres_password: secretkK1oE3tD6dT8xP8u
 mlflow_server_env: "{{mlflow_server_default_env}}"
-

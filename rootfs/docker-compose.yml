@@ -24,7 +24,7 @@ services:
     depends_on:
     - mlflow-server
     ports:
-    - "${MLFLOW__LISTEN:-0.0.0.0}:${MLFLOW__NGX_PORT:-5001}:${MLFLOW__NGX_INT_PORT:-80}"
+    - "${MLFLOW__LISTEN:-0.0.0.0}:${MLFLOW__NGINX_PORT:-5001}:${MLFLOW__NGINX_INT_PORT:-80}"
     volumes:
     - ./vhost.conf.template:/etc/nginx/conf.d/default.conf.template
     - logs:/logs/
