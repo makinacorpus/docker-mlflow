@@ -2,6 +2,7 @@ binutils
 libproj13
 gdal-bin
 less
+procps
 bash
 libpq5
 # dev deps

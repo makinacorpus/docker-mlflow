@@ -21,4 +21,4 @@ stdout_logfile_maxbytes = 0
 stderr_logfile_maxbytes = 0
 stdout_logfile_backups = 0
 stderr_logfile_backups = 0
-environment=AWS_SECRET_ACCESS_KEY="{{.Env.eAWS_SECRET_ACCESS_KEY | default ""}}",AWS_ACCESS_KEY_ID="{{.Env.AWS_ACCESS_KEY_ID|default "" }}"
+environment=MLFLOW_S3_ENDPOINT_URL="{{.Env.MLFLOW_S3_ENDPOINT_URL | default ""}}",AWS_SECRET_ACCESS_KEY="{{.Env.AWS_SECRET_ACCESS_KEY | default ""}}",AWS_ACCESS_KEY_ID="{{.Env.AWS_ACCESS_KEY_ID|default "" }}"
