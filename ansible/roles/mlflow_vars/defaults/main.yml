@@ -46,7 +46,8 @@ mlflow_server_default_env: |
   AWS_SECRET_ACCESS_KEY={{aws_secret_access_key}}
   AWS_STORAGE_BUCKET_NAME={{aws_storage_bucket_name}}
   AWS_S3_ENDPOINT_URL=http://minio:9000/
-  NGINX_MINIO_SERVERNAME={{mlflow_minio_hostname}}
+  NGINX_MINIO_SERVERNAME={{mlflow_minio_servername}}
+mlflow_minio_servername: minio
 aws_access_key_id: minio
 aws_secret_access_key: minio123
 aws_storage_bucket_name: mlflow
@@ -58,5 +59,4 @@ mlflow_postgres_db: mlflow
 mlflow_postgres_port: 5432
 mlflow_postgres_password: secretkK1oE3tD6dT8xP8u
 mlflow_server_env: "{{mlflow_server_default_env}}"
-
 
