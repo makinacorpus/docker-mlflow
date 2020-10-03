@@ -130,6 +130,19 @@ server {
     proxy_buffering off;
     proxy_http_version 1.1;
 
+    location /s3 {
+         auth_basic off;
+         proxy_set_header SCRIPT_NAME $http_x_script_name;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Host $http_host;
+         proxy_redirect off;
+         proxy_pass http://minio:9000;
+
+         # Never cache the API content to prevent proxy caching
+         add_header Pragma "no-cache";
+         add_header Cache-Control "private, max-age=0, no-cache, no-store";
+     }
+
     location / {
          proxy_set_header SCRIPT_NAME $http_x_script_name;
          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

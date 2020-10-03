@@ -74,8 +74,40 @@ services:
       set -x \
       && dockerize -wait file://$$flag -timeout $${POSTGRES_STARTUP_TIMEOUT} \
       && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
+  minio:
+    <<: [ *env ]
+    image: minio/minio
+    ports:
+    - "${MLFLOW__LISTEN:-0.0.0.0}:${MLFLOW__MINIO_PORT:-9000}:${MLFLOW__MINIO_INT_PORT:-9000}"
+    volumes:
+      - minio_data:/data
+    command: server /data
+  setup-bucket:
+    <<: [ *env ]
+    image: corpusops/mc
+    depends_on:
+    - minio
+    entrypoint:
+    - /bin/sh
+    - '-c'
+    - |-
+      set -ex
+      MINIO_STARTUP_TIMEOUT=$${MINIO_STARTUP_TIMEOUT:-30s}
+      flag=/started_$$(echo $$AWS_S3_ENDPOINT_URL|sed -re "s![/:]!__!g")
+      if [ -e "$$flag" ];then rm -f "$$flag";fi
+      echo "Try connection to $$AWS_S3_ENDPOINT_URL" >&2 \
+      && ( while true;do if ( \
+        mc config host add minio \
+          $$AWS_S3_ENDPOINT_URL $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY \
+      );then touch $$flag && break;fi;done )&
+      set -x \
+      && dockerize -wait file://$$flag -timeout $${MINIO_STARTUP_TIMEOUT} \
+      && mc mb --ignore-existing minio/$$AWS_STORAGE_BUCKET_NAME \
+      && mc policy set download minio/$$AWS_STORAGE_BUCKET_NAME \
+      && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
 volumes:
   mlflow:
   postgresql:
   nginx-certs:
   logs:
+  minio_data:
