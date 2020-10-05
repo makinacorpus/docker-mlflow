@@ -2,3 +2,4 @@ mlflow==1.11.0
 awscli>=1.18.148
 boto3>=1.15.7
 psycopg2>=2.8.*
+tensorflow>=2.3,<3
