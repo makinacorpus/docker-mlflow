@@ -16,6 +16,12 @@ from mlflow.entities.model_registry.model_version_status import ModelVersionStat
 LOCAL_PATHR = os.environ.get('TF_MODEL_PATH', '/data')
 MLFLOWDIR = os.path.join(LOCAL_PATHR, 'mf')
 TFLOWDIR = os.path.join(LOCAL_PATHR, 'tf')
+def rm_dirs(*d):
+    if not isinstance(d, (tuple, list)):
+        d = [d]
+    for c in d:
+        if os.path.exists(c):
+            shutil.rmtree(c)
 def create_dirs(*d):
     if not isinstance(d, (tuple, list)):
         d = [d]
@@ -59,8 +65,7 @@ def fetch():
         vgr = vmatch.groupdict()
         mlflowdir = os.path.join(MLFLOWDIR, m)
         tflowdir = os.path.join(TFLOWDIR, m)
-        if os.path.exists(tflowdir):
-            shutil.rmtree(tflowdir)
+        rm_dirs(mlflowdir, tflowdir)
         create_dirs(mlflowdir, tflowdir)
         client.download_artifacts(vgr['runid'], vgr['path'], mlflowdir)
         found = False
