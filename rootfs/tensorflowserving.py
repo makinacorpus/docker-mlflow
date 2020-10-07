@@ -74,6 +74,7 @@ def fetch():
             if os.path.exists(mdldir):
                 os.rename(mdldir, tflowdir + '/1')
                 found = True
+                break
         if found:
             continue
         raise Exception(f'{m}: model not found')
