@@ -1,11 +1,26 @@
+bash
 binutils
-libproj13
+curl
 gdal-bin
 less
 procps
 bash
 libpq5
+libproj12
+libpython3.6
+libtsan0
+libubsan0
+netbase
+patch 
+perl
+perl-modules-5.26
+procps
+python3
+python3-distutils
+python3-lib2to3
 # dev deps
 libpq-dev
 build-essential
 libproj-dev
+python3-dev
+ibpython3.6-dev
