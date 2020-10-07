@@ -31,6 +31,7 @@ before_install:
 install: skip
 script:
 - docker build --squash -t $IMAGE . --build-arg MLFLOW__VERSION=${__VERSION__}
+- docker build -f Dockerfile.tf -t $IMAGE-tensorflowserving . --build-arg MLFLOW__VERSION=${__VERSION__}
 after_success:
 - docker images
-- ./docker_release $IMAGE
+- ./docker_release $IMAGE $IMAGE-tensorflowserving
