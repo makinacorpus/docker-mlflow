@@ -1,7 +1,9 @@
 # docker images for a mlflow tracking server & tensorflowserving (for mlflow)
 
 - [![Build Status](https://travis-ci.org/makinacorpus/docker-mlflow.svg?branch=master)](https://travis-ci.org/makinacorpus/docker-mlflow)
-- This include the build for [dockerhub image: makinacorpus/mlflow-server](https://hub.docker.com/r/makinacorpus/mlflow-server)
+- This include the build for:
+    - [dockerhub image: makinacorpus/mlflow-server:<VER>](https://hub.docker.com/r/makinacorpus/mlflow-server)
+    - [dockerhub image: makinacorpus/mlflow-server:<VER-tensorflowserving>](https://hub.docker.com/r/makinacorpus/mlflow-server)
     - [supported tags](https://hub.docker.com/r/makinacorpus/mlflow-server/tags)
 
 
