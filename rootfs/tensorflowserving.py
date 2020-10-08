@@ -6,28 +6,32 @@ serve models hosted on a mlflow+s3
 from __future__ import absolute_import, division, print_function
 import sys
 import os
-import mlflow
 import shutil
 import re
 from mlflow.tracking import MlflowClient
 import subprocess
-import tempfile
-from mlflow.entities.model_registry.model_version_status import ModelVersionStatus
+
 LOCAL_PATHR = os.environ.get('TF_MODEL_PATH', '/data')
 MLFLOWDIR = os.path.join(LOCAL_PATHR, 'mf')
 TFLOWDIR = os.path.join(LOCAL_PATHR, 'tf')
+
+
 def rm_dirs(*d):
     if not isinstance(d, (tuple, list)):
         d = [d]
     for c in d:
         if os.path.exists(c):
             shutil.rmtree(c)
+
+
 def create_dirs(*d):
     if not isinstance(d, (tuple, list)):
         d = [d]
     for c in d:
         if not os.path.exists(c):
             os.makedirs(c)
+
+
 dockerhost = subprocess.check_output('''\
 ip -4 route list match 0/0 \
     | awk '{print $3" host.docker.internal"}'
@@ -37,10 +41,13 @@ subprocess.check_output(
     shell=True)
 os.environ['DOCKER_HOST_IP'] = dockerhost
 os.environ['S3_ENDPOINT'] = os.environ['AWS_S3_ENDPOINT_URL']
+
 # download model
-MODEL_URI_RE = re.compile('(?P<scheme>.*):/(?P<model>[^/]+)/(?P<stage>.*)$', flags=re.I)
-sourcere = re.compile(
-    's3://(?P<bucket>[^/]+)/(?P<runid>[^/]+)/artifacts/(?P<path>.*$)')
+MODEL_URI_RE = re.compile('(?P<scheme>.*):/(?P<model>[^/]+)/(?P<stage>.*)$',
+                          flags=re.I)
+SOURCE_RE = re.compile(
+    's3://(?P<bucket>[^/]+)/(?P<experimentid>[^/]+)/(?P<runid>[^/]+)/artifacts/(?P<path>.*$)'
+)
 models = {}
 
 for model in os.environ.get('MLFLOW_MODELS', '').split(';'):
@@ -48,6 +55,7 @@ for model in os.environ.get('MLFLOW_MODELS', '').split(';'):
         'uri': os.environ.get(model.upper() + '_MODELE_PATH_URI',
                               f'models:/{model}/Production')
     }
+
 
 def fetch():
     client = MlflowClient()
@@ -61,7 +69,7 @@ def fetch():
             v for v in client.search_registered_models(
                 filter_string=f"name='{gr['model']}'")[0].latest_versions
             if v.current_stage == gr['stage']][0]
-        vmatch = sourcere.search(version.source)
+        vmatch = SOURCE_RE.search(version.source)
         vgr = vmatch.groupdict()
         mlflowdir = os.path.join(MLFLOWDIR, m)
         tflowdir = os.path.join(TFLOWDIR, m)
@@ -78,6 +86,7 @@ def fetch():
         if found:
             continue
         raise Exception(f'{m}: model not found')
+
 
 if os.environ.get('SKIP_FETCH'):
     print('Skip fetch')
@@ -96,7 +105,7 @@ for i in os.listdir(TFLOWDIR):
 '''
 config += '\n}'
 with open(configp, 'w') as fic:
-	fic.write(config)
+    fic.write(config)
 print('Using config:\n')
 print(open(configp).read())
 tfargs = sys.argv[1:]
