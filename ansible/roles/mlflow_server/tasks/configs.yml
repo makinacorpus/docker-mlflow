@@ -30,7 +30,7 @@
   with_filetree: "{{playbook_dir}}/../rootfs/"
   when:
   - "item.state == 'file'"
-  - "not item.path|regex_search('\\.frep$|conf.template')"
+  - "not item.path|regex_search('\\.frep$|tensorflowserving.py|conf.template')"
 
 - name: Copy files
   copy:
@@ -40,7 +40,7 @@
   with_filetree: "{{playbook_dir}}/../rootfs/"
   when:
   - "item.state == 'file'"
-  - "item.path|regex_search('\\.frep$|conf.template')"
+  - "item.path|regex_search('\\.frep$|tensorflowserving.py|conf.template')"
 
 - name: Copy rendered templates to their real final dest
   copy:
