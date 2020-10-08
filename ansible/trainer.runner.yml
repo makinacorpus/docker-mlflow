@@ -1,0 +1,10 @@
+- hosts: "{{mlflow_servers|default('all')}}"
+  roles: [corpusops.roles/plugins]
+  tasks:
+  - include_role: {name: corpusops.roles/services_virt_docker}
+    when: [docker_setup|default(true)]
+    tags: [docker_setup]
+  - include_role: {name: corpusops.roles/services_ci_gitlab_runner, public: y}
+    tags: [gitlab_runner]
+    when: [gitlab_runner|default(true)]
+
