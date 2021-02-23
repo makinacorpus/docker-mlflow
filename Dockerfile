@@ -1,5 +1,6 @@
 # size of the image is dependant of using --squash docker build flag !
-FROM corpusops/tensorflow-serving
+ARG BASEIMAGE=corpusops/tensorflow-serving
+FROM $BASEIMAGE
 LABEL maintainer "Mathieu Le Marec Pasquet <kiorky@cryptelium.net>"
 ARG LANG="fr_FR.UTF-8"
 ARG TZ="Europe/Paris"

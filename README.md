@@ -3,7 +3,9 @@
 - ![.github/workflows/cicd.yml](https://github.com/makinacorpus/docker-mlflow/workflows/.github/workflows/cicd.yml/badge.svg)
 - This include the build for:
     - `makinacorpus/mlflow-server:<VER>`
+    - `makinacorpus/mlflow-server:<VER>-gpu`
     - `makinacorpus/mlflow-server:<VER-tensorflowserving>`
+    - `makinacorpus/mlflow-server:<VER-tensorflowserving>-gpu`
     - [supported tags](https://hub.docker.com/r/makinacorpus/mlflow-server/tags)
 
 

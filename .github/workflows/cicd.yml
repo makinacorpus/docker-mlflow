@@ -27,14 +27,22 @@ jobs:
           import json;c=json.load(open(d));c['experimental']=True;\
           open(d, 'w').write(json.dumps(c))\";systemctl restart docker"
       - uses: actions/checkout@v2
+      # See: https://github.com/actions/virtual-environments/issues/709
+      - name: get extra space
+        run: set -e;
+             sudo rm -rf "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
       - name: build & release
-        run: set -ex;
+        run: |-
+             set -ex;
              IMGV=${IMG_RELEASE};
-             t=${IMG}:${IMGV};
+             BASEIMAGE=$(echo $IMG|awk -F::: '{print $1}');
+             IMGN=$(echo $IMG|awk -F::: '{print $2}');
+             t=${IMGN}:${IMGV};
              if ( echo $DFILE | egrep -iq ".tf");then t=${t}-tensorflowserving;fi;
-             db() { docker build
-              --build-arg BUILDKIT_INLINE_CACHE="1" -t ${3} -f ${1} ${2} "${@:4}"; };
-             db ${DFILE} ${DPATH} ${t}-no-squash;docker tag ${t}-no-squash ${t};
+             if ( echo $BASEIMAGE | egrep -iq "gpu");then t=${t}-gpu;fi;
+             db() { docker build --build-arg BUILDKIT_INLINE_CACHE="1" -t ${3} -f ${1} ${2} "${@:4}"; };
+             db ${DFILE} ${DPATH} ${t}-no-squash --build-arg BASEIMAGE=$BASEIMAGE
+             docker tag ${t}-no-squash ${t}
              if [ "x${NO_SQUASH}" = "x" ];then db ${DFILE} ${DPATH} ${t} --squash;fi;
              if [ "x${{steps.v.outputs.releasable}}" = "xtrue" ];then for i in "" -no-squash;do docker push ${t}${i};done;fi;
     strategy:
@@ -42,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         IMG_RELEASE: [1.11.0]
-        IMG: ["makinacorpus/mlflow-server"]
+        IMG: ["corpusops/tensorflow-serving:::makinacorpus/mlflow-server", "corpusops/tensorflow-serving:latest-gpu:::makinacorpus/mlflow-server"]
         DFILE: ["Dockerfile", "Dockerfile.tf"]
         DPATH: ["."]
 on:
