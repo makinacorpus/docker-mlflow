@@ -2,6 +2,30 @@ version: "3.8"
 x-images:
   env: &env
     env_file: [.env]
+    environment:
+      COMPOSE_PROJECT_NAME: "${COMPOSE_PROJECT_NAME:-mlflow}"
+      MLFLOW__PORT: "${MLFLOW__PORT:-5000}"
+      MLFLOW__NGINX_PORT: "${MLFLOW__NGINX_PORT:-5001}"
+      MLFLOW__LISTEN: "${MLFLOW__LISTEN:-0.0.0.0}"
+      MLFLOW__BACKEND_STORE_URI: "${MLFLOW__BACKEND_STORE_URI:-postgresql://mlflow:mlflow@db:5432/mlflow}"
+      MLFLOW__ARTIFACTS_ROOT_URI: "${MLFLOW__ARTIFACTS_ROOT_URI:-s3://mlflow}"
+      MLFLOW__SERVER_EXTRA_ARGS: "${MLFLOW__SERVER_EXTRA_ARGS:-}"
+      MLFLOW__HTTP_PROTECT_USER: "${MLFLOW__HTTP_PROTECT_USER:-mlflow}"
+      MLFLOW__HTTP_PROTECT_PASSWORD: "${MLFLOW__HTTP_PROTECT_PASSWORD:-mlflow}"
+      POSTGRES_USER: "${POSTGRES_USER:-mlflow}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-mlflow}"
+      POSTGRES_HOST: "${POSTGRES_HOST:-db}"
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      POSTGRES_DB: "${POSTGRES_DB:-mlflow}"
+      # Minio
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:-minio}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:-minio123}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-minio}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-minio123}"
+      AWS_STORAGE_BUCKET_NAME: "${AWS_STORAGE_BUCKET_NAME:-mlflow}"
+      AWS_S3_ENDPOINT_URL: "${AWS_S3_ENDPOINT_URL:-http://minio:9000/}"
+      MLFLOW_S3_ENDPOINT_URL: "${MLFLOW_S3_ENDPOINT_URL:-http://minio:9000/}"
+      MINIO_STARTUP_TIMEOUT: "${MINIO_STARTUP_TIMEOUT:-30s}"
 services:
   mlflow-server:
     <<: [ *env ]
