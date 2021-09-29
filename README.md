@@ -1,6 +1,6 @@
 # docker images for a mlflow tracking server & tensorflowserving (for mlflow)
 
-- [![Build Status](https://travis-ci.org/makinacorpus/docker-mlflow.svg?branch=master)](https://travis-ci.org/makinacorpus/docker-mlflow)
+- ![.github/workflows/cicd.yml](https://github.com/makinacorpus/docker-mlflow/workflows/.github/workflows/cicd.yml/badge.svg)
 - This include the build for:
     - `makinacorpus/mlflow-server:<VER>`
     - `makinacorpus/mlflow-server:<VER-tensorflowserving>`
