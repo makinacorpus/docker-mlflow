@@ -3,7 +3,7 @@ env:
   COMPOSE_DOCKER_CLI_BUILD: "1"
   BUILDKIT_PROGRESS: "plain"
   NO_SQUASH: ""
-  RELEASABLE_REPOS: "^corpusops/"
+  RELEASABLE_REPOS: "^(corpusops|makinacorpus)/"
   RELEASABLE_BRANCHES: "^(refs/heads/)?(master|main|workflows)$"
 jobs:
   r:
@@ -11,6 +11,16 @@ jobs:
     env: {IMG: "${{matrix.IMG}}", DFILE: "${{matrix.DFILE}}", DPATH: "${{matrix.DPATH}}",
           IMG_RELEASE: "${{matrix.IMG_RELEASE}}"}
     steps:
+      # See: https://github.com/actions/virtual-environments/issues/709
+      - name: get extra space
+        run: |-
+             set -e;
+             cd /opt/hostedtoolcache
+             sudo rm -rf CodeQL PyPy go
+             cd /usr/local
+             sudo rm -rf graalvm aws-cli share/boost lib/node_modules lib/android share/vcpkg
+             cd /usr/share
+             sudo rm -rf dotnet swift az* rust* gradl* miniconda
       - name: Set vars
         run: |-
             if ( echo "$GITHUB_REF" | egrep -q "${RELEASABLE_BRANCHES}" ) \
@@ -27,10 +37,6 @@ jobs:
           import json;c=json.load(open(d));c['experimental']=True;\
           open(d, 'w').write(json.dumps(c))\";systemctl restart docker"
       - uses: actions/checkout@v2
-      # See: https://github.com/actions/virtual-environments/issues/709
-      - name: get extra space
-        run: set -e;
-             sudo rm -rf "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
       - name: build & release
         run: |-
              set -ex;
